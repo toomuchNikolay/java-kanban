@@ -1,15 +1,21 @@
+package storageTasks;
+
 import java.util.ArrayList;
 
 public class Epic extends Task {
-    private final ArrayList<Subtask> subtasksToEpic;
+    private final ArrayList<Integer> subtasksIds;
 
     public Epic(String title, String description) {
         super(title, description);
-        this.subtasksToEpic = new ArrayList<>();
+        this.subtasksIds = new ArrayList<>();
+    }
+
+    public ArrayList<Integer> getSubtasksIds() {
+        return subtasksIds;
     }
 
     public void addSubtaskToEpic(Subtask subtask) {
-        subtasksToEpic.add(subtask);
+        subtasksIds.add(subtask.getId());
     }
 
     public void updateStatus(ArrayList<Subtask> subtasks) {
@@ -41,7 +47,7 @@ public class Epic extends Task {
                 ", description='" + getDescription() + '\'' +
                 ", id=" + getId() +
                 ", status=" + getStatus() +
-                ", subtasks=" + subtasksToEpic +
+                ", subtasksIds=" + subtasksIds +
                 '}';
     }
 }
