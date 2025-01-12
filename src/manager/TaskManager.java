@@ -56,14 +56,12 @@ public class TaskManager {
         epics.put(newEpic.getId(), newEpic);
     }
 
-    // Есть сомнения насчет того, что этот вариант "можно лучше" :)
+    // Если я правильно объединил замечания по данному методу после первого и второго ревью
+    // Метод put не использовать, обновлять только название и описание
     public void updateEpic(Epic updateEpic) {
         if (epics.containsKey(updateEpic.getId())) {
-            Epic tempEpic = epics.get(updateEpic.getId());
-            tempEpic.setTitle(updateEpic.getTitle());
-            tempEpic.setDescription(updateEpic.getDescription());
-            epics.put(updateEpic.getId(), tempEpic);
-            checkEpicStatus(updateEpic.getId());
+            epics.get(updateEpic.getId()).setTitle(updateEpic.getTitle());
+            epics.get(updateEpic.getId()).setDescription(updateEpic.getDescription());
         }
     }
 
@@ -121,10 +119,10 @@ public class TaskManager {
     }
 
     public void deleteSubtask(Integer id) {
-        subtasks.remove(id);
-        for (Epic epic : epics.values()) {
-            epic.getSubtasksIds().remove(id);
-            checkEpicStatus(epic.getId());
+        if (subtasks.containsKey(id)) {
+            Subtask deleteSubtask = subtasks.remove(id);
+            epics.get(deleteSubtask.getEpicId()).getSubtasksIds().remove(id);
+            checkEpicStatus(deleteSubtask.getEpicId());
         }
     }
 
