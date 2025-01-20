@@ -1,4 +1,4 @@
-package storageTasks;
+package TaskTracker.storage;
 
 public enum Status {
     NEW,

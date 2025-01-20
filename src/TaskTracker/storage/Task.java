@@ -1,12 +1,12 @@
-package storageTasks;
+package TaskTracker.storage;
 
 import java.util.Objects;
 
 public class Task {
-    private String title;
-    private String description;
-    private int id;
-    private Status status;
+    protected String title;
+    protected String description;
+    protected int id;
+    protected Status status;
 
     public Task (String title, String description) {
         this.title = title;
@@ -48,21 +48,14 @@ public class Task {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Task task = (Task) o;
-        return id == task.id && Objects.equals(title, task.title) && Objects.equals(description, task.description)
-                && status == task.status;
+        if (this == o) return true;
+        if (!(o instanceof Task other)) return false;
+        return id == other.id;
     }
 
     @Override
     public int hashCode() {
-        int hash = 17;
-        if (title != null)
-            hash += title.hashCode();
-        hash *= 31;
-        if (description != null)
-            hash += description.hashCode();
-        return hash;
+        return Objects.hashCode(id);
     }
 
     @Override
