@@ -1,16 +1,26 @@
 package TaskTracker.storage;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Epic extends Task {
-    private final ArrayList<Integer> subtasksIds;
+    private final List<Integer> subtasksIds;
 
     public Epic(String title, String description) {
         super(title, description);
         this.subtasksIds = new ArrayList<>();
     }
 
-    public ArrayList<Integer> getSubtasksIds() {
+    private Epic(int id, String title, String description, Status status, List<Integer> subtasksIds) {
+        super(id, title, description, status);
+        this.subtasksIds = subtasksIds;
+    }
+
+    public Epic getTaskForHistory() {
+        return new Epic(this.getId(), this.getTitle(), this.getDescription(), this.status, this.getSubtasksIds());
+    }
+
+    public List<Integer> getSubtasksIds() {
         return subtasksIds;
     }
 
@@ -18,7 +28,7 @@ public class Epic extends Task {
         subtasksIds.add(subtask.getId());
     }
 
-    public void updateStatus(ArrayList<Subtask> subtasks) {
+    public void updateStatus(List<Subtask> subtasks) {
         if (subtasks.isEmpty())
             setStatus(Status.NEW);
         else {

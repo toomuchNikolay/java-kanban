@@ -4,7 +4,6 @@ import TaskTracker.storage.*;
 
 public static void main(String[] args) {
     TaskManager taskManager = Manager.getDefault();
-    HistoryManager historyManager = Manager.getDefaultHistory();
     Task task1 = new Task("title task1", "desc task1");
     taskManager.addTask(task1);
     Task task2 = new Task("title task2", "desc task2");
@@ -22,11 +21,14 @@ public static void main(String[] args) {
     Subtask subtask3 = new Subtask("title subtask3", "desc subtask3", epic2.getId());
     taskManager.addSubtask(subtask3);
 
+    printAllTasks(taskManager);
+}
+
+private static void printAllTasks(TaskManager taskManager) {
     System.out.println("Задачи:");
     for (Task task : taskManager.getAllTask()) {
         System.out.println(task);
     }
-
     System.out.println("Эпики:");
     for (Task epic : taskManager.getAllEpic()) {
         System.out.println(epic);
@@ -35,30 +37,13 @@ public static void main(String[] args) {
             System.out.println("--> " + task);
         }
     }
-
     System.out.println("Подзадачи:");
     for (Task subtask : taskManager.getAllSubtask()) {
         System.out.println(subtask);
     }
 
     System.out.println("История:");
-    for (Task task : historyManager.getHistory()) {
-        System.out.println(task);
-    }
-
-    System.out.println();
-
-    taskManager.getTask(task1.getId());
-    taskManager.getTask(task2.getId());
-    taskManager.getTask(task3.getId());
-    taskManager.getEpic(epic1.getId());
-    taskManager.getEpic(epic2.getId());
-    taskManager.getSubtask(subtask1.getId());
-    taskManager.getSubtask(subtask2.getId());
-    taskManager.getSubtask(subtask3.getId());
-
-    System.out.println("История:");
-    for (Task task : historyManager.getHistory()) {
+    for (Task task : taskManager.getHistory()) {
         System.out.println(task);
     }
 }

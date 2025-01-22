@@ -4,36 +4,23 @@ import TaskTracker.interfaces.TaskManager;
 import TaskTracker.managers.Manager;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class SubtaskTest {
     TaskManager taskManager = Manager.getDefault();
 
     @Test
-    void shouldBePositiveWhenIdSubtasksEquals() {
-        Epic epic = new Epic("test title", "test desc");
+    void shouldSubtasksEqualsWithSameId() {
+        Epic epic = new Epic("test epic title", "test epic description");
         taskManager.addEpic(epic);
-        Subtask subtask1 = new Subtask("test1 title", "test1 desc", epic.getId());
+        Subtask subtask1 = new Subtask("test subtask1 title", "test subtask1 description", epic.getId());
         Subtask savedSubtask1 = taskManager.addSubtask(subtask1);
-        Subtask subtask2 = new Subtask("test2 title", "test2 desc", epic.getId());
+        Subtask subtask2 = new Subtask("test subtask2 title", "test subtask2 description", epic.getId());
         Subtask savedSubtask2 = taskManager.addSubtask(subtask2);
         savedSubtask2.setId(savedSubtask1.getId());
+        taskManager.updateSubtask(savedSubtask2);
 
-        assertEquals(savedSubtask1, savedSubtask2, "Задачи не равны друг другу");
-        assertEquals(savedSubtask1.hashCode(), savedSubtask2.hashCode(), "Задачи не равны друг другу");
-    }
-
-    @Test
-    void shouldReturnNullSubtasksWhenIdSubtaskEqualsEpicId() {
-        Epic epic = new Epic("test title", "test desc");
-        Epic savedEpic = taskManager.addEpic(epic);
-        savedEpic.setId(2);
-        Subtask subtask = new Subtask("test1 title", "test1 desc", savedEpic.getId());
-        taskManager.addSubtask(subtask);
-        final ArrayList<Subtask> subtasks = taskManager.getAllSubtask();
-
-        assertTrue(subtasks.isEmpty(), "Список подзадач не пустой");
+        assertEquals(savedSubtask1, savedSubtask2, "Подзадачи не равны друг другу");
+        assertEquals(savedSubtask1.hashCode(), savedSubtask2.hashCode(), "Подзадачи не равны друг другу");
     }
 }

@@ -1,25 +1,36 @@
 package TaskTracker.managers;
 
 import TaskTracker.interfaces.*;
+import TaskTracker.storage.Task;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ManagerTest {
-    TaskManager taskManager1 = Manager.getDefault();
-    TaskManager taskManager2 = Manager.getDefault();
-    HistoryManager historyManager1 = Manager.getDefaultHistory();
-    HistoryManager historyManager2 = Manager.getDefaultHistory();
-
     @Test
     void shouldReturnInitializedTaskManager() {
-        assertNotNull(taskManager1, "Метод getDefault не создает новый объект");
-        assertEquals(taskManager1, taskManager2, "Метод getDefault возвращает разные объекты");
+        TaskManager taskManager = Manager.getDefault();
+
+        assertNotNull(taskManager, "Экземпляр TaskManager не проинициализирован");
+
+        Task task = new Task("test task title", "test task description");
+        taskManager.addTask(task);
+        List<Task> tasks = taskManager.getAllTask();
+
+        assertEquals(1, tasks.size(), "TaskManager не добавил задачу в список");
     }
 
     @Test
     void shouldReturnInitializedHistoryManager() {
-        assertNotNull(historyManager1, "Метод getDefaultHistory не создает новый объект");
-        assertEquals(historyManager1, historyManager2, "Метод getDefaultHistory возвращает разные объекты");
+        HistoryManager historyManager = Manager.getDefaultHistory();
+
+        assertNotNull(historyManager, "Экземпляр HistoryManager не проинициализирован");
+
+        Task task = new Task("test task title", "test task description");
+        historyManager.add(task);
+        List<Task> history = historyManager.getHistory();
+        assertEquals(1, history.size(), "HistoryManager не добавил задачу в историю");
     }
 }

@@ -3,22 +3,20 @@ package TaskTracker.managers;
 import TaskTracker.interfaces.*;
 import TaskTracker.storage.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     private int idCounter;
-    private final HashMap<Integer, Task> tasks;
-    private final HashMap<Integer, Epic> epics;
-    private final HashMap<Integer, Subtask> subtasks;
-    private final HistoryManager historyManager;
+    private final Map<Integer, Task> tasks;
+    private final Map<Integer, Epic> epics;
+    private final Map<Integer, Subtask> subtasks;
+    private final HistoryManager historyManager = Manager.getDefaultHistory();
 
     public InMemoryTaskManager(HistoryManager historyManager) {
         this.tasks = new HashMap<>();
         this.epics = new HashMap<>();
         this.subtasks = new HashMap<>();
         idCounter = 0;
-        this.historyManager = historyManager;
     }
 
     private int getIdCounter() {
@@ -40,16 +38,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getAllTask() {
+    public List<Task> getAllTask() {
         return new ArrayList<>(tasks.values());
     }
 
     @Override
     public Task getTask(Integer id) {
-        Task copy = new Task(tasks.get(id).getTitle(), tasks.get(id).getDescription());
-        copy.setId(tasks.get(id).getId());
-        copy.setStatus(tasks.get(id).getStatus());
-        historyManager.add(copy);
+        historyManager.add(tasks.get(id));
         return tasks.get(id);
     }
 
@@ -81,20 +76,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Epic> getAllEpic() {
+    public List<Epic> getAllEpic() {
         return new ArrayList<>(epics.values());
     }
 
     @Override
     public Epic getEpic(Integer id) {
-        Epic copy = new Epic(epics.get(id).getTitle(), epics.get(id).getDescription());
-        copy.setId(epics.get(id).getId());
-        copy.setStatus(epics.get(id).getStatus());
-        for (Subtask sub : subtasks.values()) {
-            if (sub.getEpicId() == id)
-                copy.addSubtaskToEpic(sub);
-        }
-        historyManager.add(copy);
+        historyManager.add(epics.get(id));
         return epics.get(id);
     }
 
@@ -133,16 +121,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Subtask> getAllSubtask() {
+    public List<Subtask> getAllSubtask() {
         return new ArrayList<>(subtasks.values());
     }
 
     @Override
     public Subtask getSubtask(Integer id) {
-        Subtask copy = new Subtask(subtasks.get(id).getTitle(), subtasks.get(id).getDescription(), subtasks.get(id).getEpicId());
-        copy.setId(subtasks.get(id).getId());
-        copy.setStatus(subtasks.get(id).getStatus());
-        historyManager.add(copy);
+        historyManager.add(subtasks.get(id));
         return subtasks.get(id);
     }
 
@@ -166,8 +151,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение списка всех подзадач определённого эпика
     @Override
-    public ArrayList<Subtask> getAllSubtaskByEpic(int id) {
-        ArrayList<Subtask> result = new ArrayList<>();
+    public List<Subtask> getAllSubtaskByEpic(int id) {
+        List<Subtask> result = new ArrayList<>();
         for (Subtask subtask : subtasks.values()) {
             if (subtask.getEpicId() == id)
                 result.add(subtask);
@@ -180,8 +165,14 @@ public class InMemoryTaskManager implements TaskManager {
     public void checkEpicStatus(int id) {
         Epic epic = epics.get(id);
         if (epic != null) {
-            ArrayList<Subtask> subtasksForCheckStatus = getAllSubtaskByEpic(id);
+            List<Subtask> subtasksForCheckStatus = getAllSubtaskByEpic(id);
             epic.updateStatus(subtasksForCheckStatus);
         }
+    }
+
+    // Получение списка истории просмотра
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 }

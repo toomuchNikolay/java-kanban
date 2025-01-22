@@ -14,6 +14,17 @@ public class Task {
         this.status = Status.NEW;
     }
 
+    protected Task(int id, String title, String description, Status status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+    }
+
+    public Task getTaskForHistory() {
+        return new Task(this.getId(), this.getTitle(), this.getDescription(), this.getStatus());
+    }
+
     public String getTitle() {
         return title;
     }
