@@ -54,10 +54,8 @@ private static void printAllTasks(TaskManager taskManager) {
     for (Task subtask : taskManager.getAllSubtask()) {
         System.out.println(subtask);
     }
-    System.out.println();
     System.out.println("История:");
     for (Task task : taskManager.getHistory()) {
         System.out.println(task);
     }
-    System.out.println("-".repeat(100));
 }
