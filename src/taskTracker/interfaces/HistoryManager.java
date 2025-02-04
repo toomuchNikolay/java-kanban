@@ -1,12 +1,11 @@
-package TaskTracker.interfaces;
+package taskTracker.interfaces;
 
-import TaskTracker.storage.Task;
+import taskTracker.storage.Task;
 
 import java.util.List;
 
 public interface HistoryManager {
-    int SIZE_HISTORY_LIST = 10;
-
     void add(Task task);
+    void remove(int id);
     List<Task> getHistory();
 }

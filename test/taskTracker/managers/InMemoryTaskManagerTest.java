@@ -1,7 +1,7 @@
-package TaskTracker.managers;
+package taskTracker.managers;
 
-import TaskTracker.interfaces.TaskManager;
-import TaskTracker.storage.*;
+import taskTracker.interfaces.TaskManager;
+import taskTracker.storage.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,13 @@ class InMemoryTaskManagerTest {
     void shouldIncrementCountByOneAfterAddAnyTypeTask() {
         assertEquals(1, task.getId(), "Присвоился неверный id задаче");
         assertEquals(2, epic.getId(), "Присвоился неверный id эпику");
-        assertEquals(4, subtask2.getId(), "Присвоился неверный id подзадаче");
+        assertEquals(3, subtask1.getId(), "Присвоился неверный id подзадаче");
+    }
+
+    @Test
+    void shouldNotAddNullAsTask() {
+        taskManager.addTask(null);
+        assertEquals(1, taskManager.getAllTask().size(), "Null добавился как задача в трекер");
     }
 
     @Test
@@ -45,7 +51,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldDeleteTaskById() {
-        taskManager.deleteTask(task.getId());
+        taskManager.removeTask(task.getId());
 
         assertFalse(taskManager.getAllTask().contains(task), "Задача не удалена");
     }
@@ -55,6 +61,12 @@ class InMemoryTaskManagerTest {
         taskManager.removeAllTask();
 
         assertTrue(taskManager.getAllTask().isEmpty(), "Список задач не пуст");
+    }
+
+    @Test
+    void shouldNotAddNullAsEpic() {
+        taskManager.addEpic(null);
+        assertEquals(1, taskManager.getAllEpic().size(), "Null добавился как эпик в трекер");
     }
 
     @Test
@@ -69,7 +81,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldDeleteEpicByIdAndSubtasksWithSameEpicId() {
-        taskManager.deleteEpic(epic.getId());
+        taskManager.removeEpic(epic.getId());
 
         assertFalse(taskManager.getAllEpic().contains(epic), "Эпик не удален");
         assertTrue(taskManager.getAllSubtask().isEmpty(), "Привязанные подзадачи к эпику не удалены");
@@ -84,25 +96,42 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void shouldNotAddNullAsSubtask() {
+        taskManager.addSubtask(null);
+        assertEquals(2, taskManager.getAllSubtask().size(), "Null добавился как подзадача в трекер");
+    }
+
+    @Test
+    void shouldNotAddSubtaskWithFalseEpicId() {
+        Subtask testSubtask = new Subtask("test subtask title", "test subtask description", 111);
+        taskManager.addSubtask(testSubtask);
+
+        assertFalse(taskManager.getAllSubtask().contains(testSubtask),
+                "Подзадача с несуществующим epicId добавилась в трекер задач");
+    }
+
+    @Test
     void shouldAddSubtask() {
-        assertNotNull(taskManager.getAllSubtask(), "Эпик не добавился в трекер задач");
+        assertNotNull(taskManager.getAllSubtask(), "Подзадача не добавилась в трекер задач");
     }
 
     @Test
     void shouldReturnSubtaskById() {
-        assertEquals(subtask2, taskManager.getSubtask(subtask2.getId()), "Эпик по id не найден");
+        assertEquals(subtask2, taskManager.getSubtask(subtask2.getId()), "Подзадача по id не найдена");
     }
 
     @Test
     void shouldDeleteSubtaskByIdAndRemoveFromSubtasksIds() {
-        taskManager.deleteSubtask(subtask1.getId());
+        taskManager.removeSubtask(subtask1.getId());
+        taskManager.removeSubtask(111);
 
         assertFalse(taskManager.getAllSubtask().contains(subtask1), "Подзадача не удалена");
-        assertFalse(taskManager.getEpic(subtask1.getEpicId()).getSubtasksIds().contains(subtask1.getId()));
+        assertFalse(taskManager.getEpic(subtask1.getEpicId()).getSubtasksIds().contains(subtask1.getId()),
+                "Подзадача не удалена из списка привязанных к эпику подзадач");
     }
 
     @Test
-    void shouldRemoveAllSubtaksAndClearSubtasksIdsEpics() {
+    void shouldRemoveAllSubtasksAndClearSubtasksIdsEpics() {
         taskManager.removeAllSubtask();
 
         assertTrue(taskManager.getAllSubtask().isEmpty(), "Список подзадач не пуст");
@@ -134,18 +163,13 @@ class InMemoryTaskManagerTest {
         assertEquals(task.getId(), addedTask.getId(), "Идентификатор задачи изменился");
         assertEquals(task.getStatus(), addedTask.getStatus(), "Статус задач изменился");
     }
-//
-//    @Test
-//    void shouldBePositiveWhenSetIdTaskManualAndGeneration() {
-//        Task task1 = new Task("test task1 title", "test task1 desc");
-//        Task task2 = new Task("test task1 title", "test task1 desc");
-//        taskManager.addTask(task1);
-//        taskManager.addTask(task2);
-//        task2.setId(task1.getId());
-//        taskManager.updateTask(task2);
-//
-//        final ArrayList<Task> tasks1 = taskManager.getAllTask();
-//
-//        assertEquals(2, tasks1.size(), "Неверное количество задач");
-//    }
+
+    @Test
+    void shouldAddToHistoryWhenGetTasks() {
+        taskManager.getTask(task.getId());
+        taskManager.getEpic(epic.getId());
+        taskManager.getSubtask(subtask1.getId());
+
+        assertEquals(3, taskManager.getHistory().size(), "В историю просмотров не добавились задачи");
+    }
 }
