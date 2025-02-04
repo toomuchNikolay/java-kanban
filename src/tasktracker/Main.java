@@ -1,6 +1,6 @@
-import taskTracker.interfaces.*;
-import taskTracker.managers.Manager;
-import taskTracker.storage.*;
+import tasktracker.interfaces.*;
+import tasktracker.managers.Manager;
+import tasktracker.storage.*;
 
 public static void main(String[] args) {
     TaskManager taskManager = Manager.getDefault();

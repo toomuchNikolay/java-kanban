@@ -1,7 +1,7 @@
-package taskTracker.managers;
+package tasktracker.managers;
 
-import taskTracker.interfaces.HistoryManager;
-import taskTracker.storage.*;
+import tasktracker.interfaces.HistoryManager;
+import tasktracker.storage.*;
 
 import java.util.*;
 

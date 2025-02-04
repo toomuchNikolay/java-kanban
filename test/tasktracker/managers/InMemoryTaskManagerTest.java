@@ -1,7 +1,7 @@
-package taskTracker.managers;
+package tasktracker.managers;
 
-import taskTracker.interfaces.TaskManager;
-import taskTracker.storage.*;
+import tasktracker.interfaces.TaskManager;
+import tasktracker.storage.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

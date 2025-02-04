@@ -1,6 +1,6 @@
-package taskTracker.managers;
+package tasktracker.managers;
 
-import taskTracker.interfaces.*;
+import tasktracker.interfaces.*;
 
 public final class Manager {
     private Manager() {
