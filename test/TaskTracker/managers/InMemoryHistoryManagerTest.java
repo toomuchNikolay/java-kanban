@@ -4,65 +4,67 @@ import TaskTracker.interfaces.*;
 import TaskTracker.storage.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Node;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
     private final HistoryManager historyManager = Manager.getDefaultHistory();
-    private Task firstTask;
+    private Task task1;
+    private Task task2;
+    private Task task3;
 
     @BeforeEach
     void beforeEach() {
-        firstTask = new Task("test first task title", "test first task description");
-        historyManager.add(firstTask);
-        historyManager.add(new Task("test task1 title", "test task1 description"));
-        historyManager.add(new Epic("test epic title", "test epic description"));
-        historyManager.add(new Subtask("test subtask title", "test subtask description", 3));
-        historyManager.add(new Task("test task2 title", "test task2 description"));
-        historyManager.add(new Task("test task3 title", "test task3 description"));
-        historyManager.add(new Task("test task4 title", "test task4 description"));
-        historyManager.add(new Task("test task5 title", "test task5 description"));
-        historyManager.add(new Task("test task6 title", "test task6 description"));
+        task1 = new Task("test task1 title", "test task1 description");
+        task2 = new Task("test task2 title", "test task2 description");
+        task3 = new Task("test task3 title", "test task3 description");
+        historyManager.add(task1);
     }
 
     @Test
-    void shouldHistoryManagerSavePreviousVersionTask() {
-        firstTask.setTitle("test first task title new");
-        historyManager.add(firstTask);
+    void shouldNotAddNull() {
+        historyManager.add(null);
 
-        assertEquals("test first task title", historyManager.getHistory().getFirst().getTitle(),
-                "Название первой просмотренной задачи не совпадает");
-        assertEquals("test first task title new", historyManager.getHistory().getLast().getTitle(),
-                "Название последней просмотренной задачи не совпадает");
+        assertEquals(1, historyManager.getHistory().size(), "В историю просмотров добавился Null");
     }
 
     @Test
-    void shouldReturnTrueSizeHistoryList() {
-        assertEquals(9, historyManager.getHistory().size(),
-                "Не совпадает количество записей в истории просмотров");
+    void shouldAddTaskToEnd() {
+        historyManager.add(task2);
+
+        assertEquals(task2, historyManager.getHistory().getLast(),
+                "Просмотренная задача добавляется не в конец списка истории");
     }
 
     @Test
-    void shouldNotBeMoreMaxSizeHistoryList() {
-        Task lastTask = new Task("test last task title", "test last task description");
-        historyManager.add(lastTask);
-        Task overMaxSizeTask = new Task("test over task title", "test over task description");
-        historyManager.add(overMaxSizeTask);
+    void shouldNotAddDuplicateTask() {
+        historyManager.add(task1);
 
-        assertTrue(historyManager.getHistory().size() <= 10,
-                "Превышен максимально допустимый размер истории просмотров");
+        assertEquals(1, historyManager.getHistory().size(),
+                "В списке истории дублируются просмотры задач");
     }
 
     @Test
-    void shouldDeleteFirstTaskAndAddLast() {
-        Task lastTask = new Task("test last task title", "test last task description");
-        historyManager.add(lastTask);
-        Task overMaxSizeTask = new Task("test over task title", "test over task description");
-        historyManager.add(overMaxSizeTask);
+    void shouldAddNewVersionTaskToEnd() {
+        task1.setTitle("test task1 new title");
 
-        assertEquals(overMaxSizeTask, historyManager.getHistory().getLast(),
-                "В историю просмотров не добавилась последняя просмотренная задача при достижении лимита");
-        assertNotEquals("test first task title", historyManager.getHistory().getFirst().getTitle(),
-                "В истории просмотров при достижении лимита удалилась не первая просмотренная задача");
+        assertEquals("test task1 title", historyManager.getHistory().getLast().getTitle(),
+                "В списке истории изменилось название задачи до просмотра");
+
+        historyManager.add(task1);
+
+        assertEquals("test task1 new title", historyManager.getHistory().getLast().getTitle(),
+                "При наличии дубля задачи в списке истории добавилась не новая версия");
+    }
+
+    @Test
+    void shouldRemoveTask() {
+        historyManager.add(task2);
+        historyManager.add(task3);
+
+        historyManager.remove(task2.getId());
+
+        assertFalse(historyManager.getHistory().contains(task2), "Задача не удалилась из списка истории");
     }
 }

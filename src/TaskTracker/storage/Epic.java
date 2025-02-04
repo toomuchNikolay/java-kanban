@@ -24,11 +24,7 @@ public class Epic extends Task {
         return subtasksIds;
     }
 
-    public void addSubtaskToEpic(Subtask subtask) {
-        subtasksIds.add(subtask.getId());
-    }
-
-    public void updateStatus(List<Subtask> subtasks) {
+    public void setStatus(List<Subtask> subtasks) {
         if (subtasks.isEmpty())
             setStatus(Status.NEW);
         else {
@@ -53,9 +49,9 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return "Epic{" +
-                "title='" + getTitle() + '\'' +
+                "id=" + getId() +
+                ", title='" + getTitle() + '\'' +
                 ", description='" + getDescription() + '\'' +
-                ", id=" + getId() +
                 ", status=" + getStatus() +
                 ", subtasksIds=" + subtasksIds +
                 '}';

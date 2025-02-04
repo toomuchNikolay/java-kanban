@@ -10,21 +10,21 @@ public interface TaskManager {
     List<Task> getAllTask();
     Task getTask(Integer id);
     void removeAllTask();
-    void deleteTask(Integer id);
+    void removeTask(Integer id);
 
-    Epic addEpic(Epic newEpic);
-    void updateEpic(Epic updateEpic);
+    Epic addEpic(Epic epic);
+    void updateEpic(Epic epic);
     List<Epic> getAllEpic();
     Epic getEpic(Integer id);
     void removeAllEpic();
-    void deleteEpic(Integer id);
+    void removeEpic(Integer id);
 
-    Subtask addSubtask(Subtask newSubtask);
-    void updateSubtask(Subtask updateSubtask);
+    Subtask addSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask);
     List<Subtask> getAllSubtask();
     Subtask getSubtask(Integer id);
     void removeAllSubtask();
-    void deleteSubtask(Integer id);
+    void removeSubtask(Integer id);
 
     List<Subtask> getAllSubtaskByEpic(int id);
     void checkEpicStatus(int id);
