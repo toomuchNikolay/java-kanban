@@ -6,17 +6,17 @@ import tasktracker.storage.*;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final Map<Integer, Node> viewHistory;
-    private Node head;
-    private Node tail;
+    private final Map<Integer, Node<Task>> viewHistory;
+    private Node<Task> head;
+    private Node<Task> tail;
 
-    private class Node {
-        Task task;
-        Node before;
-        Node after;
+    private static class Node<T> {
+        T data;
+        Node<T> before;
+        Node<T> after;
 
-        private Node(Task task) {
-            this.task = task;
+        private Node(T data) {
+            this.data = data;
             this.before = null;
             this.after = null;
         }
@@ -39,7 +39,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private void linkLast(Task task) {
-        Node node = new Node(task);
+        Node<Task> node = new Node<>(task);
         if (tail == null) {
             head = node;
         } else {
@@ -49,10 +49,10 @@ public class InMemoryHistoryManager implements HistoryManager {
         tail = node;
     }
 
-    private void removeNode(Node node) {
+    private void removeNode(Node<Task> node) {
         if (Objects.nonNull(node)) {
-            Node prevNode = node.before;
-            Node nextNode = node.after;
+            Node<Task> prevNode = node.before;
+            Node<Task> nextNode = node.after;
 
             if (prevNode == null)
                 head = nextNode;
@@ -77,9 +77,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public List<Task> getHistory() {
         List<Task> result = new ArrayList<>();
-        Node node = head;
+        Node<Task> node = head;
         while (node != null) {
-            result.add(node.task);
+            result.add(node.data);
             node = node.after;
         }
         return result;
