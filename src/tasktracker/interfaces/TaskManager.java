@@ -1,32 +1,49 @@
-package TaskTracker.interfaces;
+package tasktracker.interfaces;
 
-import TaskTracker.storage.*;
+import tasktracker.storage.*;
 
 import java.util.List;
 
 public interface TaskManager {
     Task addTask(Task task);
+
     void updateTask(Task task);
+
     List<Task> getAllTask();
+
     Task getTask(Integer id);
+
     void removeAllTask();
-    void deleteTask(Integer id);
 
-    Epic addEpic(Epic newEpic);
-    void updateEpic(Epic updateEpic);
+    void removeTask(Integer id);
+
+    Epic addEpic(Epic epic);
+
+    void updateEpic(Epic epic);
+
     List<Epic> getAllEpic();
-    Epic getEpic(Integer id);
-    void removeAllEpic();
-    void deleteEpic(Integer id);
 
-    Subtask addSubtask(Subtask newSubtask);
-    void updateSubtask(Subtask updateSubtask);
+    Epic getEpic(Integer id);
+
+    void removeAllEpic();
+
+    void removeEpic(Integer id);
+
+    Subtask addSubtask(Subtask subtask);
+
+    void updateSubtask(Subtask subtask);
+
     List<Subtask> getAllSubtask();
+
     Subtask getSubtask(Integer id);
+
     void removeAllSubtask();
-    void deleteSubtask(Integer id);
+
+    void removeSubtask(Integer id);
 
     List<Subtask> getAllSubtaskByEpic(int id);
+
     void checkEpicStatus(int id);
+
     List<Task> getHistory();
 }

@@ -1,14 +1,14 @@
-package TaskTracker.storage;
+package tasktracker.storage;
 
 import java.util.Objects;
 
 public class Task {
+    protected int id;
     protected String title;
     protected String description;
-    protected int id;
     protected Status status;
 
-    public Task (String title, String description) {
+    public Task(String title, String description) {
         this.title = title;
         this.description = description;
         this.status = Status.NEW;
@@ -23,6 +23,14 @@ public class Task {
 
     public Task getTaskForHistory() {
         return new Task(this.getId(), this.getTitle(), this.getDescription(), this.getStatus());
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -41,14 +49,6 @@ public class Task {
         this.description = description;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -59,9 +59,9 @@ public class Task {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Task other)) return false;
-        return id == other.id;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id;
     }
 
     @Override
@@ -72,9 +72,9 @@ public class Task {
     @Override
     public String toString() {
         return "Task{" +
-                "title='" + title + '\'' +
+                "id=" + id +
+                ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", id=" + id +
                 ", status=" + status +
                 '}';
     }
