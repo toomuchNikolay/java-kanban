@@ -6,15 +6,15 @@ public class Task {
     protected int id;
     protected String title;
     protected String description;
-    protected Status status;
+    protected StatusTask status;
 
     public Task(String title, String description) {
         this.title = title;
         this.description = description;
-        this.status = Status.NEW;
+        this.status = StatusTask.NEW;
     }
 
-    protected Task(int id, String title, String description, Status status) {
+    public Task(int id, String title, String description, StatusTask status) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -49,12 +49,16 @@ public class Task {
         this.description = description;
     }
 
-    public Status getStatus() {
+    public StatusTask getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(StatusTask status) {
         this.status = status;
+    }
+
+    public TypeTask getType() {
+        return TypeTask.TASK;
     }
 
     @Override
@@ -71,11 +75,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+        return String.format("%d,%s,%s,%s,%s", id, TypeTask.TASK, title, status.toString(), description);
     }
 }

@@ -141,17 +141,17 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldStatusEpicSetCorrectly() {
-        assertEquals(Status.NEW, epic.getStatus(), "Неверный статус эпика");
+        assertEquals(StatusTask.NEW, epic.getStatus(), "Неверный статус эпика");
 
-        subtask1.setStatus(Status.DONE);
+        subtask1.setStatus(StatusTask.DONE);
         taskManager.updateSubtask(subtask1);
 
-        assertEquals(Status.IN_PROGRESS, epic.getStatus(), "Некорректно изменился статус эпика");
+        assertEquals(StatusTask.IN_PROGRESS, epic.getStatus(), "Некорректно изменился статус эпика");
 
-        subtask2.setStatus(Status.DONE);
+        subtask2.setStatus(StatusTask.DONE);
         taskManager.updateSubtask(subtask2);
 
-        assertEquals(Status.DONE, epic.getStatus(), "Некорректно изменился итоговый статус эпика");
+        assertEquals(StatusTask.DONE, epic.getStatus(), "Некорректно изменился итоговый статус эпика");
     }
 
     @Test

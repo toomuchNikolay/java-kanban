@@ -1,9 +1,14 @@
 package tasktracker.managers;
 
 import tasktracker.interfaces.*;
+import tasktracker.storage.StatusTask;
 import tasktracker.storage.Task;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,5 +37,24 @@ class ManagerTest {
         historyManager.add(task);
         List<Task> history = historyManager.getHistory();
         assertEquals(1, history.size(), "HistoryManager не добавил задачу в историю");
+    }
+
+    @Test
+    void shouldReturnInitializedFileBackedTaskManager() throws IOException {
+        File tempFile = File.createTempFile("temp", ".scv");
+        FileBackedTaskManager backedManager = Manager.getDefaultBacked(tempFile.toPath());
+
+        assertNotNull(backedManager, "Экземпляр FileBackedTaskManager не проинициализирован");
+
+        Task task = new Task("test task title", "test task description");
+        backedManager.addTask(task);
+
+        BufferedReader br = new BufferedReader(new FileReader(tempFile));
+        String line = null;
+        while (br.ready()) {
+            line = br.readLine();
+        }
+        assertEquals("1,TASK,test task title,NEW,test task description", line,
+                "Задача в файл не сохранилась");
     }
 }

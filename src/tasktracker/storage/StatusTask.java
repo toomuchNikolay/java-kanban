@@ -1,6 +1,6 @@
 package tasktracker.storage;
 
-public enum Status {
+public enum StatusTask {
     NEW,
     IN_PROGRESS,
     DONE
