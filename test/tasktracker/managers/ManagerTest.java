@@ -1,14 +1,10 @@
 package tasktracker.managers;
 
 import tasktracker.interfaces.*;
-import tasktracker.storage.StatusTask;
 import tasktracker.storage.Task;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,7 +38,7 @@ class ManagerTest {
     @Test
     void shouldReturnInitializedFileBackedTaskManager() throws IOException {
         File tempFile = File.createTempFile("temp", ".scv");
-        FileBackedTaskManager backedManager = Manager.getDefaultBacked(tempFile.toPath());
+        TaskManager backedManager = Manager.getFileBacked(tempFile.toPath());
 
         assertNotNull(backedManager, "Экземпляр FileBackedTaskManager не проинициализирован");
 

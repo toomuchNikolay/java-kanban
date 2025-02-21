@@ -5,40 +5,46 @@ import tasktracker.interfaces.TaskManager;
 import tasktracker.storage.*;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends GeneralTaskManagerTest<FileBackedTaskManager> {
+    protected File file;
+
+    @Override
+    protected FileBackedTaskManager getTaskManager() {
+        try {
+            file = File.createTempFile("temp", ".scv");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return (FileBackedTaskManager) Manager.getFileBacked(file.toPath());
+    }
+
     @Test
     void shouldSaveTasksToFile() {
         try {
-            File tempFile = File.createTempFile("temp", ".scv");
-            FileBackedTaskManager backedManager = Manager.getDefaultBacked(tempFile.toPath());
+            List<String> result = new ArrayList<>();
 
-            Task task = new Task("test task title", "test task description");
-            backedManager.addTask(task);
-            Epic epic = new Epic("test epic title", "test epic description");
-            backedManager.addEpic(epic);
-            Subtask subtask1 = new Subtask("test subtask1 title", "test subtask1 description", epic.getId());
-            backedManager.addSubtask(subtask1);
-            Subtask subtask2 = new Subtask("test subtask2 title", "test subtask2 description", epic.getId());
-            backedManager.addSubtask(subtask2);
-
-            assertTrue(tempFile.length() != 0, "Файл пустой");
-
-            backedManager.removeSubtask(subtask2.getId());
-
-            BufferedReader br = new BufferedReader(new FileReader(tempFile));
-            int lineCount = 0;
+            BufferedReader br = new BufferedReader(new FileReader(file));
             while (br.ready()) {
-                br.readLine();
-                ++lineCount;
+                String line = br.readLine();
+                result.add(line);
             }
 
-            assertEquals(4, lineCount, "После удаления задачи файл не обновился");
-
+            assertTrue(result.contains("id,type,title,status,description,epic"),
+                    "Сохраненный файл не содержит заголовок");
+            assertTrue(result.contains("1,TASK,test task title,NEW,test task description"),
+                    "В файл не сохранилась задача");
+            assertTrue(result.contains("2,EPIC,test epic title,NEW,test epic description"),
+                    "В файл не сохранился эпик");
+            assertTrue(result.contains("4,SUBTASK,test subtask2 title,NEW,test subtask2 description,2"),
+                    "В файл не сохранилась подзадача");
+            assertEquals(5, result.size(), "В файле содержится не 4 задачи + заголовок");
         } catch (IOException e) {
-            System.out.println("Ошибка при сохранении файла");
+            System.out.println("Ошибка чтения файла");
         }
     }
 
@@ -47,40 +53,35 @@ class FileBackedTaskManagerTest {
         Task savedTask1 = FileBackedTaskManager.fromString("1,TASK,test task title,NEW,test task description");
         Task savedTask2 = FileBackedTaskManager.fromString("2,EPIC,test epic title,NEW,test epic description");
         Task savedTask3 = FileBackedTaskManager.fromString("3,SUBTASK,test subtask1 title,NEW,test subtask1 description,2");
-        Task savedTask4 = FileBackedTaskManager.fromString("4,SUBEPIC,test title,NEW,test description");
 
         assertEquals(TypeTask.TASK, savedTask1.getType(), "При преобразовании строки вернулся не объект Task");
         assertEquals(TypeTask.EPIC, savedTask2.getType(), "При преобразовании строки вернулся не объект Epic");
         assertEquals(TypeTask.SUBTASK, savedTask3.getType(), "При преобразовании строки вернулся не объект Subtask");
-        assertNull(savedTask4, "При преобразовании строки вернулся не Null");
     }
 
     @Test
     void shouldLoadTasksFromFile() throws IOException {
-        File tempLoadFile = File.createTempFile("tempload", ".scv");
+        TaskManager taskManager = FileBackedTaskManager.loadFromFile(file);
 
-        try (Writer writer = new FileWriter(tempLoadFile)) {
-            writer.write("id,type,title,status,description,epic\n");
-            writer.write("1,TASK,test task title,NEW,test task description\n");
-            writer.write("2,EPIC,test epic title,NEW,test epic description\n");
-            writer.write("3,SUBTASK,test subtask1 title,NEW,test subtask1 description,2");
-        }
+        List<Task> taskList1 = manager.getAllTask();
+        List<Task> taskList2 = taskManager.getAllTask();
+        List<Epic> epicList1 = manager.getAllEpic();
+        List<Epic> epicList2 = taskManager.getAllEpic();
+        List<Subtask> subtasksList1 = manager.getAllSubtask();
+        List<Subtask> subtasksList2 = taskManager.getAllSubtask();
 
-        TaskManager manager = FileBackedTaskManager.loadFromFile(tempLoadFile);
+        assertEquals(taskList1, taskList2, "Задачи из файла не восстановились");
+        assertEquals(epicList1, epicList2, "Эпики из файла не восстановились");
+        assertEquals(subtasksList1, subtasksList2, "Подзадачи из файла не восстановились");
+    }
 
-        // проверяем добавление задач всех типов в Map
-        assertEquals(1, manager.getAllTask().size(), "Задача не добавлена из файла");
-        assertEquals(1, manager.getAllEpic().size(), "Эпик не добавлен из файла");
-        assertEquals(1, manager.getAllSubtask().size(), "Подзадача не добавлена из файла");
+    @Test
+    void shouldRestoreIdCounter() {
+        TaskManager taskManager = FileBackedTaskManager.loadFromFile(file);
 
         Task task = new Task("test newtask title", "test newtask description");
-        manager.addTask(task);
+        taskManager.addTask(task);
 
-        // проверяем обновление счетчика id до максимального из загруженного списка задач
-        assertEquals(4, task.getId(), "Не обновился счетчик id");
-
-        // проверяем связку эпика и подзадачи при загрузке из файла
-        assertEquals(2, manager.getSubtask(3).getEpicId(), "Указан неверный id эпика");
-        assertNotNull(manager.getEpic(2).getSubtasksIds(), "Нет привязка подзадачи к эпику");
+        assertEquals(5, task.getId(), "Не восстановился счетчик id");
     }
 }

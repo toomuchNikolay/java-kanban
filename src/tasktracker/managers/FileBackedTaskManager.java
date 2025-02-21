@@ -1,6 +1,7 @@
 package tasktracker.managers;
 
 import tasktracker.exceptions.*;
+import tasktracker.interfaces.TaskManager;
 import tasktracker.storage.*;
 
 import java.io.*;
@@ -9,7 +10,6 @@ import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     protected Path path;
-    final String header = "id,type,title,status,description,epic";
 
     public FileBackedTaskManager(Path path) {
         super();
@@ -18,7 +18,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static void main(String[] args) throws IOException {
         File file = File.createTempFile("temp", ".scv");
-        FileBackedTaskManager manager = Manager.getDefaultBacked(file.toPath());
+        TaskManager manager = Manager.getFileBacked(file.toPath());
 
         Task task = new Task("task title", "task desc");
         manager.addTask(task);
@@ -51,6 +51,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public void save() {
         try (Writer writer = new FileWriter(path.toFile())) {
+            String header = "id,type,title,status,description,epic";
             writer.write(header + "\n");
             for (Task task : getAllTask()) {
                 writer.write(task.toString() + "\n");
@@ -68,40 +69,51 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     protected static Task fromString(String value) {
         String[] split = value.split(",");
-        switch (split[1]) {
-            case "TASK": {
-                return new Task(Integer.parseInt(split[0]), split[2], split[4], StatusTask.valueOf(split[3]));
+
+        if (split.length < 5 || split.length > 6) {
+            throw new ManagerLoadException("Ошибка преобразования строки - неверный формат");
+        }
+
+        int id = Integer.parseInt(split[0]);
+        TypeTask type = TypeTask.valueOf(split[1]);
+        String title = split[2];
+        String description = split[4];
+        StatusTask status = StatusTask.valueOf(split[3]);
+
+        switch (type) {
+            case TypeTask.TASK: {
+                return new Task(id, title, description, status);
             }
-            case "EPIC": {
-                return new Epic(Integer.parseInt(split[0]), split[2], split[4], StatusTask.valueOf(split[3]));
+            case TypeTask.EPIC: {
+                return new Epic(id, title, description, status);
             }
-            case "SUBTASK": {
-                return new Subtask(Integer.parseInt(split[0]), split[2], split[4], StatusTask.valueOf(split[3]), Integer.parseInt(split[5]));
+            case TypeTask.SUBTASK: {
+                int epicId = Integer.parseInt(split[5]);
+                return new Subtask(id, title, description, status, epicId);
             }
             default:
-                return null;
+                throw new ManagerLoadException("Ошибка создания задачи - некорректный тип задачи");
         }
     }
 
     protected static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             br.readLine();
             while (br.ready()) {
                 String line = br.readLine();
                 Task createTask = fromString(line);
-                if (createTask != null) {
-                    if (createTask.getId() > manager.idCounter)
-                        manager.idCounter = createTask.getId();
-                    if (createTask instanceof Epic) {
-                        manager.epics.put(createTask.getId(), (Epic) createTask);
-                    } else if (createTask instanceof Subtask) {
-                        manager.subtasks.put(createTask.getId(), (Subtask) createTask);
-                        manager.getEpic(((Subtask) createTask).getEpicId()).getSubtasksIds().add(createTask.getId());
-                        manager.checkEpicStatus(((Subtask) createTask).getEpicId());
-                    } else {
-                        manager.tasks.put(createTask.getId(), createTask);
-                    }
+                if (createTask.getId() > manager.idCounter)
+                    manager.idCounter = createTask.getId();
+                if (createTask instanceof Epic) {
+                    manager.epics.put(createTask.getId(), (Epic) createTask);
+                } else if (createTask instanceof Subtask) {
+                    manager.subtasks.put(createTask.getId(), (Subtask) createTask);
+                    manager.getEpic(((Subtask) createTask).getEpicId()).getSubtasksIds().add(createTask.getId());
+                    manager.checkEpicStatus(((Subtask) createTask).getEpicId());
+                } else {
+                    manager.tasks.put(createTask.getId(), createTask);
                 }
             }
         } catch (IOException e) {
