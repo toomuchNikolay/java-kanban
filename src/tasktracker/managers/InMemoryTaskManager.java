@@ -6,17 +6,18 @@ import tasktracker.storage.*;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    private int idCounter;
-    private final Map<Integer, Task> tasks;
-    private final Map<Integer, Epic> epics;
-    private final Map<Integer, Subtask> subtasks;
-    private final HistoryManager historyManager = Manager.getDefaultHistory();
+    protected int idCounter;
+    protected final Map<Integer, Task> tasks;
+    protected final Map<Integer, Epic> epics;
+    protected final Map<Integer, Subtask> subtasks;
+    protected HistoryManager historyManager;
 
-    public InMemoryTaskManager(HistoryManager historyManager) {
+    public InMemoryTaskManager() {
         this.tasks = new HashMap<>();
         this.epics = new HashMap<>();
         this.subtasks = new HashMap<>();
         idCounter = 0;
+        historyManager = Manager.getDefaultHistory();
     }
 
     private int getIdCounter() {

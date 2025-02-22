@@ -11,13 +11,13 @@ public class Epic extends Task {
         this.subtasksIds = new ArrayList<>();
     }
 
-    private Epic(int id, String title, String description, Status status, List<Integer> subtasksIds) {
+    public Epic(int id, String title, String description, StatusTask status) {
         super(id, title, description, status);
-        this.subtasksIds = subtasksIds;
+        this.subtasksIds = new ArrayList<>();
     }
 
     public Epic getTaskForHistory() {
-        return new Epic(this.getId(), this.getTitle(), this.getDescription(), this.status, this.getSubtasksIds());
+        return new Epic(this.getId(), this.getTitle(), this.getDescription(), this.status);
     }
 
     public List<Integer> getSubtasksIds() {
@@ -26,35 +26,33 @@ public class Epic extends Task {
 
     public void setStatus(List<Subtask> subtasks) {
         if (subtasks.isEmpty())
-            setStatus(Status.NEW);
+            setStatus(StatusTask.NEW);
         else {
             boolean allStatusNew = true;
             boolean allStatusDone = true;
             for (Subtask subtask : subtasks) {
-                if (subtask.getStatus() != Status.NEW) {
+                if (subtask.getStatus() != StatusTask.NEW) {
                     allStatusNew = false;
                 }
-                if (subtask.getStatus() != Status.DONE) {
+                if (subtask.getStatus() != StatusTask.DONE) {
                     allStatusDone = false;
                 }
             }
             if (allStatusNew)
-                setStatus(Status.NEW);
+                setStatus(StatusTask.NEW);
             else if (allStatusDone)
-                setStatus(Status.DONE);
+                setStatus(StatusTask.DONE);
             else
-                setStatus(Status.IN_PROGRESS);
+                setStatus(StatusTask.IN_PROGRESS);
         }
+    }
+
+    public TypeTask getType() {
+        return TypeTask.EPIC;
     }
 
     @Override
     public String toString() {
-        return "Epic{" +
-                "id=" + getId() +
-                ", title='" + getTitle() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", status=" + getStatus() +
-                ", subtasksIds=" + subtasksIds +
-                '}';
+        return String.format("%d,%s,%s,%s,%s", id, TypeTask.EPIC, title, status.toString(), description);
     }
 }
