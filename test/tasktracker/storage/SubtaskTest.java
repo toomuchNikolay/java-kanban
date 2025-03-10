@@ -16,7 +16,8 @@ class SubtaskTest {
     void beforeEach() {
         Epic epic = new Epic("test epic title", "test epic description");
         savedEpic = taskManager.addEpic(epic);
-        Subtask subtask1 = new Subtask("test subtask1 title", "test subtask1 description", savedEpic.getId());
+        Subtask subtask1 = new Subtask("test subtask1 title", "test subtask1 description",
+                30, "01.01.2025 00:00", savedEpic.getId());
         savedSubtask1 = taskManager.addSubtask(subtask1);
     }
 
@@ -35,7 +36,8 @@ class SubtaskTest {
 
     @Test
     void shouldSubtasksEqualsWithSameId() {
-        Subtask subtask2 = new Subtask("test subtask2 title", "test subtask2 description", savedEpic.getId());
+        Subtask subtask2 = new Subtask("test subtask2 title", "test subtask2 description",
+                30, "01.01.2025 00:00", savedEpic.getId());
         Subtask savedSubtask2 = taskManager.addSubtask(subtask2);
         savedSubtask2.setId(savedSubtask1.getId());
         taskManager.updateSubtask(savedSubtask2);
