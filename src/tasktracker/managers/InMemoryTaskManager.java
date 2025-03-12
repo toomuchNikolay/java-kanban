@@ -33,7 +33,7 @@ public class InMemoryTaskManager implements TaskManager {
         return ++idCounter;
     }
 
-    protected Map<LocalDateTime, Boolean> createTableTime() {
+    private Map<LocalDateTime, Boolean> createTableTime() {
         availableTime = new HashMap<>();
         LocalDateTime current = START_PERIOD;
 
@@ -79,7 +79,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Set<LocalDateTime> checkAvailableTime(LocalDateTime start, LocalDateTime end) {
         return availableTime.entrySet().stream()
-                .filter(time -> time.getKey().isAfter(start) && time.getKey().isBefore(end))
+                .filter(time -> !time.getKey().isBefore(start) && time.getKey().isBefore(end))
                 .filter(Map.Entry::getValue)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
@@ -225,16 +225,20 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTask(Integer id) {
-        tasks.remove(id);
+        Task deleteTask = tasks.remove(id);
+        prioritizedTasks.remove(deleteTask);
         historyManager.remove(id);
     }
 
     @Override
     public void removeEpic(Integer id) {
-        epics.get(id).getSubtasksIds().forEach(i -> {
-            subtasks.remove(i);
-            historyManager.remove(i);
-        });
+        epics.get(id).getSubtasksIds()
+                .forEach(i -> {
+                    Subtask deleteSubtask = subtasks.remove(i);
+                    prioritizedTasks.remove(deleteSubtask);
+                    timeSlotFree(deleteSubtask);
+                    historyManager.remove(i);
+                });
         epics.remove(id);
         historyManager.remove(id);
     }
@@ -245,6 +249,8 @@ public class InMemoryTaskManager implements TaskManager {
             Subtask deleteSubtask = subtasks.remove(id);
             epics.get(deleteSubtask.getEpicId()).getSubtasksIds().remove(id);
             checkEpicStatus(deleteSubtask.getEpicId());
+            prioritizedTasks.remove(deleteSubtask);
+            timeSlotFree(deleteSubtask);
             historyManager.remove(id);
         }
     }
@@ -266,32 +272,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearTaskList() {
-        tasks.values().stream()
-                .map(Task::getId)
-                .forEach(historyManager::remove);
+        tasks.values()
+                .forEach(task -> {
+                    timeSlotFree(task);
+                    historyManager.remove(task.getId());
+                });
+        prioritizedTasks.removeIf(task -> task.getType().equals(TypeTask.TASK));
         tasks.clear();
     }
 
     @Override
     public void clearEpicList() {
         Stream.concat(epics.values().stream(), subtasks.values().stream())
-                .map(Task::getId)
-                .forEach(historyManager::remove);
+                .forEach(task -> {
+                    timeSlotFree(task);
+                    historyManager.remove(task.getId());
+                });
+        prioritizedTasks.removeIf(task -> !task.getType().equals(TypeTask.TASK));
         epics.clear();
         subtasks.clear();
     }
 
     @Override
     public void clearSubtaskList() {
-        subtasks.values().stream()
-                .map(Task::getId)
-                .forEach(historyManager::remove);
+        subtasks.values()
+                .forEach(subtask -> {
+                    timeSlotFree(subtask);
+                    historyManager.remove(subtask.getId());
+                });
+        prioritizedTasks.removeIf(task -> task.getType().equals(TypeTask.SUBTASK));
         subtasks.clear();
-        epics.values().stream()
-                .map(Epic::getId)
-                .forEach(i -> {
-                    getEpic(i).getSubtasksIds().clear();
-                    checkEpicStatus(i);
+        epics.values()
+                .forEach(epic -> {
+                    epic.getSubtasksIds().clear();
+                    timeCalculationEpic(epic.getId());
+                    checkEpicStatus(epic.getId());
                 });
     }
 
@@ -307,9 +322,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     protected void timeCalculationEpic(int id) {
-        epics.get(id).setDuration(getAllSubtaskByEpic(id));
-        epics.get(id).setStartTime(getAllSubtaskByEpic(id));
-        epics.get(id).setEndTime(getAllSubtaskByEpic(id));
+        epics.get(id).setEpicDuration(getAllSubtaskByEpic(id));
+        epics.get(id).setEpicStartTime(getAllSubtaskByEpic(id));
+        epics.get(id).setEpicEndTime(getAllSubtaskByEpic(id));
     }
 
     @Override

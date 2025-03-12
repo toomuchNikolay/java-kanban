@@ -34,39 +34,37 @@ public class Epic extends Task {
     public void setStatus(List<Subtask> subtasks) {
         if (subtasks.isEmpty())
             setStatus(StatusTask.NEW);
-        else {
-            boolean allStatusNew = true;
-            boolean allStatusDone = true;
-            for (Subtask subtask : subtasks) {
-                if (subtask.getStatus() != StatusTask.NEW) {
-                    allStatusNew = false;
-                }
-                if (subtask.getStatus() != StatusTask.DONE) {
-                    allStatusDone = false;
-                }
-            }
-            if (allStatusNew)
-                setStatus(StatusTask.NEW);
-            else if (allStatusDone)
-                setStatus(StatusTask.DONE);
-            else
-                setStatus(StatusTask.IN_PROGRESS);
-        }
+
+        if (subtasks.stream().allMatch(subtask -> subtask.getStatus().equals(StatusTask.NEW)))
+            setStatus(StatusTask.NEW);
+        else if (subtasks.stream().allMatch(subtask -> subtask.getStatus().equals(StatusTask.DONE)))
+            setStatus(StatusTask.DONE);
+        else
+            setStatus(StatusTask.IN_PROGRESS);
     }
 
-    public void setDuration(List<Subtask> subtasks) {
+    public void setEpicDuration(List<Subtask> subtasks) {
+        if (subtasks.isEmpty())
+            setDuration(null);
+
         setDuration(subtasks.stream()
                 .map(Subtask::getDuration)
                 .reduce(Duration.ZERO, Duration::plus));
     }
 
-    public void setStartTime(List<Subtask> subtasks) {
+    public void setEpicStartTime(List<Subtask> subtasks) {
+        if (subtasks.isEmpty())
+            setStartTime(null);
+
         subtasks.stream()
                 .min(Comparator.comparing(Subtask::getStartTime))
                 .ifPresent(sub -> setStartTime(sub.getStartTime()));
     }
 
-    public void setEndTime(List<Subtask> subtasks) {
+    public void setEpicEndTime(List<Subtask> subtasks) {
+        if (subtasks.isEmpty())
+            endTime = null;
+
         endTime = subtasks.stream()
                 .map(Subtask::getEndTime)
                 .max(LocalDateTime::compareTo)
