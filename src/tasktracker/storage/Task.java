@@ -1,5 +1,8 @@
 package tasktracker.storage;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task {
@@ -7,6 +10,8 @@ public class Task {
     protected String title;
     protected String description;
     protected StatusTask status;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String title, String description) {
         this.title = title;
@@ -14,15 +19,25 @@ public class Task {
         this.status = StatusTask.NEW;
     }
 
-    public Task(int id, String title, String description, StatusTask status) {
+    public Task(String title, String description, int minutesDuration, String startDateTime) {
+        this.title = title;
+        this.description = description;
+        this.status = StatusTask.NEW;
+        this.duration = Duration.ofMinutes(minutesDuration);
+        this.startTime = LocalDateTime.parse(startDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+    }
+
+    public Task(int id, String title, String description, StatusTask status, Duration duration, LocalDateTime startTime) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
 
     public Task getTaskForHistory() {
-        return new Task(this.getId(), this.getTitle(), this.getDescription(), this.getStatus());
+        return new Task(this.getId(), this.getTitle(), this.getDescription(), this.getStatus(), this.getDuration(), this.getStartTime());
     }
 
     public int getId() {
@@ -57,6 +72,26 @@ public class Task {
         this.status = status;
     }
 
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return startTime.plus(duration);
+    }
+
     public TypeTask getType() {
         return TypeTask.TASK;
     }
@@ -75,6 +110,15 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%d,%s,%s,%s,%s", id, TypeTask.TASK, title, status.toString(), description);
+        StringBuilder builder = new StringBuilder();
+        builder.append(id)
+                .append(",").append(TypeTask.TASK)
+                .append(",").append(title)
+                .append(",").append(status)
+                .append(",").append(description);
+        if (duration != null && startTime != null)
+            builder.append(",").append(duration.toMinutes())
+                    .append(",").append(startTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
+        return builder.toString();
     }
 }
