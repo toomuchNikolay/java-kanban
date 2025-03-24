@@ -29,7 +29,6 @@ class SubtaskTest {
     @Test
     void shouldNotEqualsAnotherClass() {
         savedEpic.setId(savedSubtask1.getId());
-        taskManager.updateEpic(savedEpic);
 
         assertNotEquals(savedSubtask1, savedEpic, "Задачи разного типа равны");
     }
@@ -37,10 +36,9 @@ class SubtaskTest {
     @Test
     void shouldSubtasksEqualsWithSameId() {
         Subtask subtask2 = new Subtask("test subtask2 title", "test subtask2 description",
-                30, "01.01.2025 00:00", savedEpic.getId());
+                30, "01.01.2025 01:00", savedEpic.getId());
         Subtask savedSubtask2 = taskManager.addSubtask(subtask2);
         savedSubtask2.setId(savedSubtask1.getId());
-        taskManager.updateSubtask(savedSubtask2);
 
         assertEquals(savedSubtask1, savedSubtask2, "Подзадачи не равны друг другу");
     }

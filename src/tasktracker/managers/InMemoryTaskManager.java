@@ -1,5 +1,7 @@
 package tasktracker.managers;
 
+import tasktracker.exceptions.NotFoundException;
+import tasktracker.exceptions.TaskValidationException;
 import tasktracker.interfaces.*;
 import tasktracker.storage.*;
 
@@ -87,14 +89,15 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task addTask(Task task) {
-        if (task == null)
+        if (task == null) {
             return task;
+        }
         if (task.getStartTime() != null && task.getDuration() != null) {
             if (isTimeAvailable(task)) {
                 timeSlotBooking(task);
                 addToPrioritizedTasks(task);
             } else {
-                return task;
+                throw new TaskValidationException();
             }
         }
         task.setId(getIdCounter());
@@ -104,23 +107,26 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic addEpic(Epic epic) {
-        if (Objects.nonNull(epic)) {
-            epic.setId(getIdCounter());
-            epics.put(epic.getId(), epic);
+        if (epic == null) {
+            return epic;
         }
+        epic.setId(getIdCounter());
+        epics.put(epic.getId(), epic);
         return epic;
     }
 
     @Override
     public Subtask addSubtask(Subtask subtask) {
-        if (subtask == null || !epics.containsKey(subtask.getEpicId()))
+        if (subtask == null)
             return subtask;
+        if (!epics.containsKey(subtask.getEpicId()))
+            throw new NotFoundException("В списке отсутствует эпик с указанным id");
         if (subtask.getStartTime() != null && subtask.getDuration() != null) {
             if (isTimeAvailable(subtask)) {
                 timeSlotBooking(subtask);
                 addToPrioritizedTasks(subtask);
             } else {
-                return subtask;
+                throw new TaskValidationException();
             }
         }
         subtask.setId(getIdCounter());
@@ -137,7 +143,7 @@ public class InMemoryTaskManager implements TaskManager {
             return task;
         Task old = tasks.get(task.getId());
         if (old == null)
-            return task;
+            throw new NotFoundException("В списке отсутствует задача с переданным id");
         if (old.getStartTime() != null && old.getDuration() != null) {
             prioritizedTasks.remove(old);
             timeSlotFree(old);
@@ -146,7 +152,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (!isTimeAvailable(task)) {
                 addToPrioritizedTasks(old);
                 timeSlotBooking(old);
-                return old;
+                throw new TaskValidationException();
             }
             addToPrioritizedTasks(task);
             timeSlotBooking(task);
@@ -157,9 +163,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic updateEpic(Epic epic) {
+        if (epic == null)
+            return epic;
         Epic old = epics.get(epic.getId());
         if (old == null)
-            return epic;
+            throw new NotFoundException("В списке отсутствует эпик с переданным id");
         old.setTitle(epic.getTitle());
         old.setDescription(epic.getDescription());
         return old;
@@ -167,13 +175,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask updateSubtask(Subtask subtask) {
-        if (subtask == null)
-            return subtask;
-        if (!epics.containsKey(subtask.getEpicId()))
+        if (subtask == null || !epics.containsKey(subtask.getEpicId()))
             return subtask;
         Subtask old = subtasks.get(subtask.getId());
         if (old == null)
-            return subtask;
+            throw new NotFoundException("В списке отсутствует подзадача с переданным id");
         if (old.getStartTime() != null && old.getDuration() != null) {
             prioritizedTasks.remove(old);
             timeSlotFree(old);
@@ -182,7 +188,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (!isTimeAvailable(subtask)) {
                 addToPrioritizedTasks(old);
                 timeSlotBooking(old);
-                return old;
+                throw new TaskValidationException();
             }
             addToPrioritizedTasks(subtask);
             timeSlotBooking(subtask);
@@ -204,35 +210,51 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Optional<Task> getTask(Integer id) {
-        Optional<Task> result = Optional.ofNullable(tasks.get(id));
-        result.ifPresent(historyManager::add);
-        return result;
+    public Task getTask(Integer id) {
+        Task task = tasks.get(id);
+        if (task == null)
+            throw new NotFoundException("Задача не найдена");
+        historyManager.add(task);
+        return task;
     }
 
     @Override
     public Epic getEpic(Integer id) {
-        historyManager.add(epics.get(id));
-        return epics.get(id);
+        Epic epic = epics.get(id);
+        if (epic == null)
+            throw new NotFoundException("Эпик не найден");
+        historyManager.add(epic);
+        return epic;
     }
 
     @Override
-    public Optional<Subtask> getSubtask(Integer id) {
-        Optional<Subtask> result = Optional.ofNullable(subtasks.get(id));
-        result.ifPresent(historyManager::add);
-        return result;
+    public Subtask getSubtask(Integer id) {
+        Subtask subtask = subtasks.get(id);
+        if (subtask == null)
+            throw new NotFoundException("Подзадача не найдена");
+        historyManager.add(subtask);
+        return subtask;
     }
 
     @Override
-    public void removeTask(Integer id) {
+    public Task removeTask(Integer id) {
         Task deleteTask = tasks.remove(id);
+        if (deleteTask == null) {
+            throw new NotFoundException("В списке отсутствует задача с переданным id");
+        }
         prioritizedTasks.remove(deleteTask);
+        timeSlotFree(deleteTask);
         historyManager.remove(id);
+        return deleteTask;
     }
 
     @Override
-    public void removeEpic(Integer id) {
-        epics.get(id).getSubtasksIds()
+    public Epic removeEpic(Integer id) {
+        Epic deleteEpic = epics.get(id);
+        if (deleteEpic == null) {
+            throw new NotFoundException("В списке отсутствует эпик с переданным id");
+        }
+        deleteEpic.getSubtasksIds()
                 .forEach(i -> {
                     Subtask deleteSubtask = subtasks.remove(i);
                     prioritizedTasks.remove(deleteSubtask);
@@ -241,18 +263,21 @@ public class InMemoryTaskManager implements TaskManager {
                 });
         epics.remove(id);
         historyManager.remove(id);
+        return deleteEpic;
     }
 
     @Override
-    public void removeSubtask(Integer id) {
-        if (subtasks.containsKey(id)) {
-            Subtask deleteSubtask = subtasks.remove(id);
-            epics.get(deleteSubtask.getEpicId()).getSubtasksIds().remove(id);
-            checkEpicStatus(deleteSubtask.getEpicId());
-            prioritizedTasks.remove(deleteSubtask);
-            timeSlotFree(deleteSubtask);
-            historyManager.remove(id);
+    public Subtask removeSubtask(Integer id) {
+        Subtask deleteSubtask = subtasks.remove(id);
+        if (deleteSubtask == null) {
+            throw new NotFoundException("В списке отсутствует подзадача с переданным id");
         }
+        epics.get(deleteSubtask.getEpicId()).getSubtasksIds().remove(id);
+        checkEpicStatus(deleteSubtask.getEpicId());
+        prioritizedTasks.remove(deleteSubtask);
+        timeSlotFree(deleteSubtask);
+        historyManager.remove(id);
+        return deleteSubtask;
     }
 
     @Override
