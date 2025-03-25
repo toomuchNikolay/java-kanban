@@ -16,11 +16,10 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected static final String GET = "GET";
     protected static final String DELETE = "DELETE";
     protected final TaskManager manager;
-    protected final Gson gson;
+    protected static final Gson gson = Manager.getGson();
 
     public BaseHttpHandler(TaskManager manager) {
         this.manager = manager;
-        gson = Manager.getGson();
     }
 
     @Override
