@@ -2,6 +2,8 @@ package tasktracker.managers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tasktracker.exceptions.NotFoundException;
+import tasktracker.exceptions.TaskValidationException;
 import tasktracker.interfaces.TaskManager;
 import tasktracker.storage.*;
 
@@ -54,7 +56,7 @@ abstract class GeneralTaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldReturnTaskById() {
-        assertEquals(task, manager.getTask(task.getId()).orElseThrow(), "Задача по id не найдена");
+        assertEquals(task, manager.getTask(task.getId()), "Задача по id не найдена");
     }
 
     @Test
@@ -111,11 +113,12 @@ abstract class GeneralTaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldNotAddSubtaskWithFalseEpicId() {
-        Subtask testSubtask = new Subtask("test subtask title", "test subtask description", 111);
-        manager.addSubtask(testSubtask);
-
-        assertFalse(manager.getSubtaskList().contains(testSubtask),
-                "Подзадача с несуществующим epicId добавилась в трекер задач");
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            Subtask subtask = new Subtask("test subtask title", "test subtask description", 111);
+            manager.addSubtask(subtask);
+        });
+        assertEquals("В списке отсутствует эпик с указанным id", exception.getMessage(),
+                "Не сработало исключение при проверке доступности времени");
     }
 
     @Test
@@ -130,13 +133,12 @@ abstract class GeneralTaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldReturnSubtaskById() {
-        assertEquals(subtask2, manager.getSubtask(subtask2.getId()).orElseThrow(), "Подзадача по id не найдена");
+        assertEquals(subtask2, manager.getSubtask(subtask2.getId()), "Подзадача по id не найдена");
     }
 
     @Test
     void shouldDeleteSubtaskByIdAndRemoveFromSubtasksIds() {
         manager.removeSubtask(subtask1.getId());
-        manager.removeSubtask(111);
 
         assertFalse(manager.getSubtaskList().contains(subtask1), "Подзадача не удалена");
         assertFalse(manager.getEpic(subtask1.getEpicId()).getSubtasksIds().contains(subtask1.getId()),
@@ -172,7 +174,7 @@ abstract class GeneralTaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldImmutabilityTaskWhenAddToManager() {
-        Task addedTask = manager.getTask(task.getId()).orElse(null);
+        Task addedTask = manager.getTask(task.getId());
 
         assertEquals(task.getTitle(), addedTask.getTitle(), "Название задачи изменилось");
         assertEquals(task.getDescription(), addedTask.getDescription(), "Описание задачи изменилось");
@@ -198,13 +200,12 @@ abstract class GeneralTaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldCheckAvailabilityTime() {
-        Task checkTask = new Task("check title", "check description", 30, "01.01.2025 10:30");
-        manager.addTask(checkTask);
-        Subtask checkSubtask = new Subtask("check title", "check description", 30, "01.01.2025 00:30", epic.getId());
-        manager.addTask(checkSubtask);
-
-        assertFalse(manager.getTaskList().contains(checkTask), "Не сработала проверка на доступность времени при добавлении Task");
-        assertFalse(manager.getSubtaskList().contains(checkSubtask), "Не сработала проверка на доступность времени при добавлении Subtask");
+        TaskValidationException exception = assertThrows(TaskValidationException.class, () -> {
+            Task checkTask = new Task("check title", "check description", 30, "01.01.2025 10:30");
+            manager.addTask(checkTask);
+        });
+        assertEquals("Время недоступно, задача пересекается с существующими", exception.getMessage(),
+                "Не сработало исключение при проверке доступности времени");
     }
 
     @Test

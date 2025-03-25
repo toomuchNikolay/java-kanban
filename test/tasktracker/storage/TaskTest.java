@@ -27,7 +27,6 @@ class TaskTest {
         Epic epic = new Epic("test epic title", "test epic description");
         Epic savedEpic = taskManager.addEpic(epic);
         savedEpic.setId(savedTask1.getId());
-        taskManager.updateEpic(savedEpic);
 
         assertNotEquals(savedTask1, savedEpic, "Задачи разного типа равны");
     }

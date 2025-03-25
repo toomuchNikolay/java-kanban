@@ -4,7 +4,6 @@ import tasktracker.storage.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 public interface TaskManager {
@@ -20,17 +19,17 @@ public interface TaskManager {
 
     Subtask updateSubtask(Subtask subtask);
 
-    Optional<Task> getTask(Integer id);
+    Task getTask(Integer id);
 
     Epic getEpic(Integer id);
 
-    Optional<Subtask> getSubtask(Integer id);
+    Subtask getSubtask(Integer id);
 
-    void removeTask(Integer id);
+    Task removeTask(Integer id);
 
-    void removeEpic(Integer id);
+    Epic removeEpic(Integer id);
 
-    void removeSubtask(Integer id);
+    Subtask removeSubtask(Integer id);
 
     List<Task> getTaskList();
 
